@@ -33,24 +33,27 @@ head(pa1)
 ```{r warning=FALSE, message=FALSE}
 if(!require("dplyr")) install.packages("dplyr")
 library(dplyr)
-pa1_perday <- pa1 %>% group_by(date) %>% summarise(total_steps = sum(steps, na.rm = TRUE))
+pa1_perday <- pa1 %>% group_by(date) %>% summarise(total_steps = sum(steps))
 ```
 ### Make a histogram of the total number of steps taken each day
-```{r}
-hist(pa1_perday$total_steps, xlab="Total steps per day", main="Histogram total steps per day")
+```{r warning=FALSE, message=FALSE}
+if(!require("RColorBrewer")) install.packages("RColorBrewer")
+library(RColorBrewer)
+cols <- colorRampPalette(brewer.pal(8,"Accent"))(length(unique(pa1_perday$total_steps)))
+hist(pa1_perday$total_steps, breaks=20, xlab="Total steps per day", ylab="Frequency", main="Histogram total steps per day", col=cols)
 ```
 
 ### Calculate and report the mean and median of the total number of steps taken per day
 ```{r results="axis"}
 summary(pa1_perday)
 ```
-**Total number of steps: mean = 9354, median = 10395**
+**Total number of steps: mean = 10766, median = 10765**
 
 ## What is the average daily activity pattern?
 ### Make a time series plot (i.e. type="l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 ```{r}
 pa1_interval <- aggregate(steps ~ interval, pa1, mean)
-plot(pa1_interval$interval, pa1_interval$steps, type="l", xlab="Interval", ylab="Average steps", main="Average number of steps taken per 5 minute interval across all days")
+plot(pa1_interval$interval, pa1_interval$steps, type="l", xlab="Interval", ylab="Average steps", main="Average number of steps taken per 5 minute interval across all days", col=cols)
 ```
 
 ### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
@@ -76,7 +79,7 @@ pa1_no_na <- merge(x=pa1, y=pa1_interval, by="interval", all.x=TRUE) %>%
 ### Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 ```{r}
 pa1_no_na_perday <- pa1_no_na %>% group_by(date) %>% summarise(total_steps = sum(steps))
-hist(pa1_no_na_perday$total_steps, xlab="Total steps per day", main="Histogram total steps per day")
+hist(pa1_no_na_perday$total_steps, breaks=20, xlab="Total steps per day", ylab="Frequency", main="Histogram total steps per day", col=cols)
 ```
 
 ### Calculate and report the mean and median of the total number of steps taken per day
@@ -105,7 +108,7 @@ if(!require("ggplot2")) install.packages("ggplot2")
 library(ggplot2)
 pa1_no_na_interval <- aggregate(steps ~ interval + wday_type, pa1_no_na, mean)
 ggplot(data=pa1_no_na_interval, aes(x = interval, y = steps)) +
-        geom_line() + facet_wrap(.~wday_type, ncol = 1) +
+        geom_line(colour=cols[1]) + facet_wrap(.~wday_type, ncol = 1) +
         labs(title="Average number of steps taken per 5 minute interval across all days", x="Interval", y="Average steps") +
         theme(plot.title = element_text(face = "bold"))
 ```

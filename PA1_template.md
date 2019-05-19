@@ -52,12 +52,15 @@ head(pa1)
 ```r
 if(!require("dplyr")) install.packages("dplyr")
 library(dplyr)
-pa1_perday <- pa1 %>% group_by(date) %>% summarise(total_steps = sum(steps, na.rm = TRUE))
+pa1_perday <- pa1 %>% group_by(date) %>% summarise(total_steps = sum(steps))
 ```
 ### Make a histogram of the total number of steps taken each day
 
 ```r
-hist(pa1_perday$total_steps, xlab="Total steps per day", main="Histogram total steps per day")
+if(!require("RColorBrewer")) install.packages("RColorBrewer")
+library(RColorBrewer)
+cols <- colorRampPalette(brewer.pal(8,"Accent"))(length(unique(pa1_perday$total_steps)))
+hist(pa1_perday$total_steps, breaks=20, xlab="Total steps per day", ylab="Frequency", main="Histogram total steps per day", col=cols)
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
@@ -70,21 +73,22 @@ summary(pa1_perday)
 
 ```
 ##       date             total_steps   
-##  Min.   :2012-10-01   Min.   :    0  
-##  1st Qu.:2012-10-16   1st Qu.: 6778  
-##  Median :2012-10-31   Median :10395  
-##  Mean   :2012-10-31   Mean   : 9354  
-##  3rd Qu.:2012-11-15   3rd Qu.:12811  
-##  Max.   :2012-11-30   Max.   :21194
+##  Min.   :2012-10-01   Min.   :   41  
+##  1st Qu.:2012-10-16   1st Qu.: 8841  
+##  Median :2012-10-31   Median :10765  
+##  Mean   :2012-10-31   Mean   :10766  
+##  3rd Qu.:2012-11-15   3rd Qu.:13294  
+##  Max.   :2012-11-30   Max.   :21194  
+##                       NA's   :8
 ```
-**Total number of steps: mean = 9354, median = 10395**
+**Total number of steps: mean = 10766, median = 10765**
 
 ## What is the average daily activity pattern?
 ### Make a time series plot (i.e. type="l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 ```r
 pa1_interval <- aggregate(steps ~ interval, pa1, mean)
-plot(pa1_interval$interval, pa1_interval$steps, type="l", xlab="Interval", ylab="Average steps", main="Average number of steps taken per 5 minute interval across all days")
+plot(pa1_interval$interval, pa1_interval$steps, type="l", xlab="Interval", ylab="Average steps", main="Average number of steps taken per 5 minute interval across all days", col=cols)
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
@@ -132,7 +136,7 @@ pa1_no_na <- merge(x=pa1, y=pa1_interval, by="interval", all.x=TRUE) %>%
 
 ```r
 pa1_no_na_perday <- pa1_no_na %>% group_by(date) %>% summarise(total_steps = sum(steps))
-hist(pa1_no_na_perday$total_steps, xlab="Total steps per day", main="Histogram total steps per day")
+hist(pa1_no_na_perday$total_steps, breaks=20, xlab="Total steps per day", ylab="Frequency", main="Histogram total steps per day", col=cols)
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
@@ -185,7 +189,7 @@ if(!require("ggplot2")) install.packages("ggplot2")
 library(ggplot2)
 pa1_no_na_interval <- aggregate(steps ~ interval + wday_type, pa1_no_na, mean)
 ggplot(data=pa1_no_na_interval, aes(x = interval, y = steps)) +
-        geom_line() + facet_wrap(.~wday_type, ncol = 1) +
+        geom_line(colour=cols[1]) + facet_wrap(.~wday_type, ncol = 1) +
         labs(title="Average number of steps taken per 5 minute interval across all days", x="Interval", y="Average steps") +
         theme(plot.title = element_text(face = "bold"))
 ```
